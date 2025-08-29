@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PageTitle from "./components/atoms/PageTitle";
 import { GateCard } from "./components/molecules/GateCard";
-import { fetchPublicGates } from "./lib/api/fetchPublicGates";
+import { fetchPublicGates } from "./lib/api/Gate/fetchPublicGates";
 import { GateProps } from "./types/GateProps";
 
 const Home = async () => {
