@@ -1,8 +1,7 @@
-
 import { GateProps } from "@/app/types/GateProps";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const baseUrl = process.env.BASE_URL;
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const Gates = createApi({
   reducerPath: "Gates",
