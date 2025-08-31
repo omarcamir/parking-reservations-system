@@ -1,10 +1,8 @@
 "use client";
 import PageTitle from "../../atoms/PageTitle";
 import Tabs from "../../molecules/Tabs";
-import ZoneCard from "../../molecules/ZoneCard";
 import { useState } from "react";
-import Placeholders from "../../molecules/Placeholders";
-import ZoneCardPlaceholder from "../../Placeholders/ZoneCardPlaceholder";
+
 import ErrorMessage from "../../atoms/ErrorMessage";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useGetZoneByIdQuery } from "@/app/rtkQuery/services/Zones";
@@ -13,6 +11,9 @@ import { useCheckInMutation } from "@/app/rtkQuery/services/Tickets";
 import TicketCard from "../../molecules/TicketCard";
 import { Ticket } from "@/app/types/TicketsProps";
 import TicketCardPlaceholder from "../../Placeholders/TicketCardPlaceholder";
+import VisitorTab from "../../molecules/GateDetails/VisitorTab";
+import SubscriberTab from "../../molecules/GateDetails/SubscriberTab";
+import ConfirmationModal from "../../molecules/ConfirmationModal";
 
 type ZonesProps = {
   gateId?: string;
@@ -21,6 +22,7 @@ type ZonesProps = {
 const Zones = ({ gateId }: ZonesProps) => {
   const [checkIn, { isLoading: checkInLoading, error: checkInError }] =
     useCheckInMutation();
+
   const {
     data: zones,
     isLoading: zonesLoading,
@@ -33,6 +35,11 @@ const Zones = ({ gateId }: ZonesProps) => {
   const [subscriptionVerified, setSubscriptionVerified] = useState(false);
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  
+   const [confirmationData, setConfirmationData] = useState<{
+    zoneId: string | null;
+    userType: "visitor" | "subscriber" | null;
+  }>({ zoneId: null, userType: null });
 
   const handleVerify = () => {
     if (subscriptionId.trim()) {
@@ -40,27 +47,23 @@ const Zones = ({ gateId }: ZonesProps) => {
     }
   };
 
-  const handleSelectZone = (
-    zoneId: string,
-    userType: "visitor" | "subscriber"
-  ) => {
-    setIsCheckInModalOpen(true); // Open modal right away
-    handleCheckIn(zoneId, userType);
+  const handleSelectZone = (zoneId: string, userType: "visitor" | "subscriber") => {
+    setConfirmationData({ zoneId, userType });
   };
 
-  const handleCheckIn = async (
-    zoneId: string,
-    userType: "visitor" | "subscriber"
-  ) => {
+  const handleConfirmSelection = async () => {
+    const { zoneId, userType } = confirmationData;
+    if (!zoneId || !userType) return;
+
+    setIsCheckInModalOpen(true);
     try {
       const result = await checkIn({
         gateId: gateId || "",
         zoneId,
         type: userType,
-        subscriptionId: userType === "subscriber" ? subscriptionId : undefined,
+        subscriptionId: userType === "subscriber" && subscriptionVerified ? subscriptionId : undefined,
       }).unwrap();
 
-      console.log("Check-in successful:", result);
       setTicket(result.ticket);
       refetchZones();
     } catch (err) {
@@ -69,79 +72,47 @@ const Zones = ({ gateId }: ZonesProps) => {
     }
   };
 
-  const visitorTab = {
-    id: "visitor",
-    label: "Visitor",
-    content: (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {zonesLoading || zonesFetching ? (
-          <Placeholders component={ZoneCardPlaceholder} count={5} />
-        ) : (
-          zones?.map((zone) => (
-            <ZoneCard
-              key={zone.id}
-              zone={zone}
-              userType="visitor"
-              onSelect={handleSelectZone}
-            />
-          ))
-        )}
-      </div>
-    ),
-  };
+  const tabs = [
+    {
+      id: "visitor",
+      label: "Visitor",
+      content: (
+        <VisitorTab
+          zones={zones || []}
+          isLoading={zonesLoading}
+          isFetching={zonesFetching}
+          onSelectZone={handleSelectZone}
+        />
+      ),
+    },
+    {
+      id: "subscriber",
+      label: "Subscriber",
+      content: (
+        <SubscriberTab
+          {...{
+            subscriptionId,
+            setSubscriptionId,
+            subscriptionVerified,
+            setSubscriptionVerified,
+            zones: zones || [],
+            isLoading: zonesLoading,
+            isFetching: zonesFetching,
+            onSelectZone: handleSelectZone,
+            handleVerify,
+          }}
+        />
+      ),
+    },
+  ];
 
-  const subscriberTab = {
-    id: "subscriber",
-    label: "Subscriber",
-    content: (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Enter Subscription ID"
-            value={subscriptionId}
-            onChange={(e) => {
-              setSubscriptionId(e.target.value);
-              setSubscriptionVerified(false);
-            }}
-            className="border border-border-color rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-main-color"
-          />
-          <button
-            onClick={handleVerify}
-            className="px-4 py-2 bg-accent-color text-white rounded-md hover:bg-green-600 transition-colors cursor-pointer"
-          >
-            Verify
-          </button>
-          {subscriptionVerified && (
-            <span className="text-success-color text-sm font-medium">
-              ✅ Verified
-            </span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {zonesLoading || zonesFetching ? (
-            <Placeholders component={ZoneCardPlaceholder} count={5} />
-          ) : (
-            zones?.map((zone) => (
-              <ZoneCard
-                key={zone.id}
-                zone={zone}
-                userType="subscriber"
-                subscriptionVerified={subscriptionVerified}
-                onSelect={handleSelectZone}
-              />
-            ))
-          )}
-        </div>
-      </div>
-    ),
-  };
   if (error) return <ErrorMessage />;
+
   return (
     <div className="pb-5">
       <PageTitle title="Zones" />
-      <Tabs tabs={[visitorTab, subscriberTab]} defaultTabId="visitor" />
+      <Tabs tabs={tabs} defaultTabId="visitor" />
+
       <Modal
         isOpen={isCheckInModalOpen}
         onClose={() => {
@@ -151,22 +122,27 @@ const Zones = ({ gateId }: ZonesProps) => {
           setTicket(null);
         }}
       >
-        <div className="">
-          <div className="">
-            {checkInLoading ? (
-              <TicketCardPlaceholder />
-            ) : checkInError ? (
-              <ErrorMessage message={"Check-in failed. Please try again."} />
-            ) : (
-              <TicketCard
-                ticket={ticket!}
-                onClose={() => setIsCheckInModalOpen(false)}
-              />
-            )}
-            {}
-          </div>
+        <div>
+          {checkInLoading ? (
+            <TicketCardPlaceholder />
+          ) : checkInError ? (
+            <ErrorMessage message="Check-in failed. Please try again." />
+          ) : ticket ? (
+            <TicketCard
+              ticket={ticket}
+              onClose={() => setIsCheckInModalOpen(false)}
+            />
+          ) : (
+            <p className="text-gray-500 text-center">No ticket available</p>
+          )}
         </div>
       </Modal>
+      <ConfirmationModal
+        isOpen={!!confirmationData.zoneId} // Only show if there's a zone to confirm
+        onClose={() => setConfirmationData({ zoneId: null, userType: null })}
+        onConfirm={handleConfirmSelection}
+        message={`Are you sure you want to select the zone(${confirmationData.zoneId})?`}
+      />
     </div>
   );
 };
