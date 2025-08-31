@@ -8,20 +8,31 @@ import ZoneCardPlaceholder from "../../Placeholders/ZoneCardPlaceholder";
 import ErrorMessage from "../../atoms/ErrorMessage";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useGetZoneByIdQuery } from "@/app/rtkQuery/services/Zones";
+import Modal from "../../molecules/Modal";
+import { useCheckInMutation } from "@/app/rtkQuery/services/Tickets";
+import TicketCard from "../../molecules/TicketCard";
+import { Ticket } from "@/app/types/TicketsProps";
+import TicketCardPlaceholder from "../../Placeholders/TicketCardPlaceholder";
 
 type ZonesProps = {
   gateId?: string;
 };
 
 const Zones = ({ gateId }: ZonesProps) => {
+  const [checkIn, { isLoading: checkInLoading, error: checkInError }] =
+    useCheckInMutation();
   const {
     data: zones,
     isLoading: zonesLoading,
     error,
+    refetch: refetchZones,
+    isFetching: zonesFetching,
   } = useGetZoneByIdQuery(gateId ? { id: gateId } : skipToken);
 
   const [subscriptionId, setSubscriptionId] = useState("");
   const [subscriptionVerified, setSubscriptionVerified] = useState(false);
+  const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
   const handleVerify = () => {
     if (subscriptionId.trim()) {
@@ -29,8 +40,33 @@ const Zones = ({ gateId }: ZonesProps) => {
     }
   };
 
-  const handleSelectZone = (zoneId: string) => {
-    alert(`Zone selected: ${zoneId}`);
+  const handleSelectZone = (
+    zoneId: string,
+    userType: "visitor" | "subscriber"
+  ) => {
+    setIsCheckInModalOpen(true); // Open modal right away
+    handleCheckIn(zoneId, userType);
+  };
+
+  const handleCheckIn = async (
+    zoneId: string,
+    userType: "visitor" | "subscriber"
+  ) => {
+    try {
+      const result = await checkIn({
+        gateId: gateId || "",
+        zoneId,
+        type: userType,
+        subscriptionId: userType === "subscriber" ? subscriptionId : undefined,
+      }).unwrap();
+
+      console.log("Check-in successful:", result);
+      setTicket(result.ticket);
+      refetchZones();
+    } catch (err) {
+      console.error("Check-in failed:", err);
+      setTicket(null);
+    }
   };
 
   const visitorTab = {
@@ -38,7 +74,7 @@ const Zones = ({ gateId }: ZonesProps) => {
     label: "Visitor",
     content: (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {zonesLoading ? (
+        {zonesLoading || zonesFetching ? (
           <Placeholders component={ZoneCardPlaceholder} count={5} />
         ) : (
           zones?.map((zone) => (
@@ -72,7 +108,7 @@ const Zones = ({ gateId }: ZonesProps) => {
           />
           <button
             onClick={handleVerify}
-            className="px-4 py-2 bg-accent-color text-white rounded-md hover:bg-green-600 transition-colors"
+            className="px-4 py-2 bg-accent-color text-white rounded-md hover:bg-green-600 transition-colors cursor-pointer"
           >
             Verify
           </button>
@@ -84,7 +120,7 @@ const Zones = ({ gateId }: ZonesProps) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {zonesLoading ? (
+          {zonesLoading || zonesFetching ? (
             <Placeholders component={ZoneCardPlaceholder} count={5} />
           ) : (
             zones?.map((zone) => (
@@ -106,6 +142,31 @@ const Zones = ({ gateId }: ZonesProps) => {
     <div className="pb-5">
       <PageTitle title="Zones" />
       <Tabs tabs={[visitorTab, subscriberTab]} defaultTabId="visitor" />
+      <Modal
+        isOpen={isCheckInModalOpen}
+        onClose={() => {
+          setIsCheckInModalOpen(false);
+          setSubscriptionVerified(false);
+          setSubscriptionId("");
+          setTicket(null);
+        }}
+      >
+        <div className="">
+          <div className="">
+            {checkInLoading ? (
+              <TicketCardPlaceholder />
+            ) : checkInError ? (
+              <ErrorMessage message={"Check-in failed. Please try again."} />
+            ) : (
+              <TicketCard
+                ticket={ticket!}
+                onClose={() => setIsCheckInModalOpen(false)}
+              />
+            )}
+            {}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

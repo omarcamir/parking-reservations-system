@@ -5,7 +5,7 @@ interface ZoneCardProps {
   zone: ZoneProps;
   userType: "visitor" | "subscriber";
   subscriptionVerified?: boolean;
-  onSelect?: (zoneId: string) => void;
+  onSelect?: (zoneId: string, userType: "visitor" | "subscriber") => void;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -92,9 +92,9 @@ export default function ZoneCard({
       </div>
 
       <button
-        onClick={() => onSelect?.(id)}
+        onClick={() => onSelect?.(id, userType)}
         disabled={isDisabled}
-        className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors ${
+        className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors cursor-pointer ${
           isDisabled
             ? "bg-gray-300 cursor-not-allowed"
             : "bg-main-color hover:bg-secondary-color"

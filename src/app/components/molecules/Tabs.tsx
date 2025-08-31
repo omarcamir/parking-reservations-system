@@ -22,7 +22,7 @@ export default function Tabs({ tabs, defaultTabId }: TabsProps) {
             <button
               key={tab.id}
               onClick={() => setActiveTabId(tab.id)}
-              className={`px-4 py-2 rounded-t-md transition-all duration-200 font-medium ${
+              className={`px-4 py-2 shadow rounded-t-md transition-all duration-200 font-medium cursor-pointer ${
                 isActive
                   ? "bg-main-color text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -33,7 +33,7 @@ export default function Tabs({ tabs, defaultTabId }: TabsProps) {
           );
         })}
       </div>
-      <div className="p-4 border bg-gray-100 rounded-b-md rounded-e-md">
+      <div className="p-4 shadow-lg bg-gray-100 rounded-b-md rounded-e-md">
         {activeTab?.content}
       </div>
     </div>

@@ -3,17 +3,19 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { Gates } from "./services/Gates";
 import { Zones } from "./services/Zones";
+import { Tickets } from "./services/Tickets";
 
 export const store = configureStore({
   reducer: {
     // Add the generated reducer as a specific top-level slice
     [Gates.reducerPath]: Gates.reducer,
     [Zones.reducerPath]: Zones.reducer,
+    [Tickets.reducerPath]: Tickets.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(Gates.middleware, Zones.middleware),
+    getDefaultMiddleware().concat(Gates.middleware, Zones.middleware, Tickets.middleware),
 });
 
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors
