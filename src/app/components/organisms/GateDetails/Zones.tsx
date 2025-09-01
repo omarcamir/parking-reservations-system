@@ -14,6 +14,7 @@ import TicketCardPlaceholder from "../../Placeholders/TicketCardPlaceholder";
 import VisitorTab from "../../molecules/GateDetails/VisitorTab";
 import SubscriberTab from "../../molecules/GateDetails/SubscriberTab";
 import ConfirmationModal from "../../molecules/ConfirmationModal";
+import ClientLayout from "@/app/Layout/ClientLayout";
 
 type ZonesProps = {
   gateId?: string;
@@ -35,8 +36,8 @@ const Zones = ({ gateId }: ZonesProps) => {
   const [subscriptionVerified, setSubscriptionVerified] = useState(false);
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
-  
-   const [confirmationData, setConfirmationData] = useState<{
+
+  const [confirmationData, setConfirmationData] = useState<{
     zoneId: string | null;
     userType: "visitor" | "subscriber" | null;
   }>({ zoneId: null, userType: null });
@@ -47,7 +48,10 @@ const Zones = ({ gateId }: ZonesProps) => {
     }
   };
 
-  const handleSelectZone = (zoneId: string, userType: "visitor" | "subscriber") => {
+  const handleSelectZone = (
+    zoneId: string,
+    userType: "visitor" | "subscriber"
+  ) => {
     setConfirmationData({ zoneId, userType });
   };
 
@@ -61,7 +65,10 @@ const Zones = ({ gateId }: ZonesProps) => {
         gateId: gateId || "",
         zoneId,
         type: userType,
-        subscriptionId: userType === "subscriber" && subscriptionVerified ? subscriptionId : undefined,
+        subscriptionId:
+          userType === "subscriber" && subscriptionVerified
+            ? subscriptionId
+            : undefined,
       }).unwrap();
 
       setTicket(result.ticket);
@@ -129,6 +136,7 @@ const Zones = ({ gateId }: ZonesProps) => {
             <ErrorMessage message="Check-in failed. Please try again." />
           ) : ticket ? (
             <TicketCard
+              title="Check-in Successful"
               ticket={ticket}
               onClose={() => setIsCheckInModalOpen(false)}
             />

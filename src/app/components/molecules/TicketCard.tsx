@@ -4,9 +4,10 @@ import React from "react";
 interface TicketCheckinProps {
   ticket: Ticket;
   onClose: () => void;
+  title?: string;
 }
 
-const TicketCard: React.FC<TicketCheckinProps> = ({ ticket, onClose }) => {
+const TicketCard: React.FC<TicketCheckinProps> = ({ ticket, onClose, title }) => {
   const onPrint = () => {
     window.print();
   };
@@ -16,7 +17,7 @@ const TicketCard: React.FC<TicketCheckinProps> = ({ ticket, onClose }) => {
       {/* Header */}
       <div className="text-center mb-4">
         <h2 className="text-lg font-bold text-green-600 flex items-center justify-center">
-          <span className="mr-2">✅</span> Check-in Successful
+          <span className="mr-2">✅</span> {title}
         </h2>
       </div>
 

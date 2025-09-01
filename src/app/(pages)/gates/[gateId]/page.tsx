@@ -1,5 +1,6 @@
 import GateDetailsHeader from "@/app/components/organisms/GateDetails/GateDetailsHeader";
 import Zones from "@/app/components/organisms/GateDetails/Zones";
+import ClientLayout from "@/app/Layout/ClientLayout";
 import { fetchPublicGates } from "@/app/lib/api/Gate/fetchPublicGates";
 import { notFound } from "next/navigation";
 
@@ -18,10 +19,12 @@ const GateDetails = async ({ params }: PageProps) => {
     notFound(); // Optional: Handle missing gate
   }
   return (
-    <div className="container py-10">
-      <GateDetailsHeader gateId={params.gateId} gateDetails={gateDetails} />
-      <Zones gateId={params?.gateId}/>
-    </div>
+    <ClientLayout>
+      <div className="container py-10">
+        <GateDetailsHeader gateId={params.gateId} gateDetails={gateDetails} />
+        <Zones gateId={params?.gateId} />
+      </div>
+    </ClientLayout>
   );
 };
 

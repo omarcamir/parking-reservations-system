@@ -1,8 +1,19 @@
 import React from "react";
 
-const Loader = () => {
+interface LoaderProps {
+  size?: number; // Optional size prop
+}
+
+const Loader: React.FC<LoaderProps> = ({ size = 40 }) => {
   return (
-    <div className="w-10 h-10 border-4 border-t-main-color border-gray-300 rounded-full animate-spin" />
+    <div
+      className="border-t-main-color border-gray-300 rounded-full animate-spin"
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderWidth: `${size / 10}px`, // Adjust border width based on size
+      }}
+    />
   );
 };
 
