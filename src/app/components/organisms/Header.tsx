@@ -1,43 +1,93 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { navLinks } from "../utils/paths";
 import Logo from "../atoms/Logo";
 import LoginButton from "../atoms/LoginButton";
-import { getAuth } from "@/app/lib/auth";
 import LogoutButton from "../atoms/LogoutButton";
+import { usePathname } from "next/navigation";
 
-export type AuthType = {
-  token: string | null;
-  username: string | null;
-  isAuthenticated: boolean;
+const getCookie = (name: string): string | null => {
+  if (typeof window === "undefined") return null;
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
 };
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [auth, setAuth] = useState<AuthType>({
-    token: null,
-    username: null,
+  const [auth, setAuth] = useState({
+    username: null as string | null,
     isAuthenticated: false,
+    isLoading: true,
   });
 
-  useEffect(() => {
-    // Initialize the auth state when the component mounts
-    const initAuth = async () => {
-      const authState = await getAuth();
-      setAuth(authState);
-    };
+  // Function to update auth state from cookies
+  const updateAuthFromCookies = useCallback(() => {
+    const token = getCookie("token");
+    const username = getCookie("username");
 
-    initAuth();
-  }, []);
-  const handleLogoutAuth = () => {
     setAuth({
-      token: null,
+      username,
+      isAuthenticated: !!token,
+      isLoading: false,
+    });
+  }, []);
+
+  useEffect(() => {
+    // Initial auth state load
+    updateAuthFromCookies();
+
+    // Listen for auth changes (custom event from your auth system)
+    window.addEventListener("authChange", updateAuthFromCookies);
+    return () =>
+      window.removeEventListener("authChange", updateAuthFromCookies);
+  }, [updateAuthFromCookies]);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    updateAuthFromCookies();
+  }, [pathname, updateAuthFromCookies]);
+
+  const handleLogout = () => {
+    document.cookie = "token=; max-age=0; path=/;";
+    document.cookie = "username=; max-age=0; path=/;";
+    document.cookie = "role=; max-age=0; path=/;";
+    setAuth({
       username: null,
       isAuthenticated: false,
+      isLoading: false,
     });
+
+    // Dispatch custom event for other components
+    window.dispatchEvent(new CustomEvent("authChange"));
   };
+
+  if (auth.isLoading) {
+    return (
+      <nav className="bg-white text-main-color shadow-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Logo />
+            <div className="hidden lg:flex space-x-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.id}
+                  href={link.path}
+                  className="hover:text-accent-color transition-colors duration-200"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            <div className="hidden lg:block">
+              <div className="w-24 h-8 bg-gray-200 animate-pulse rounded"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-white text-main-color shadow-md sticky top-0 z-50">
@@ -61,7 +111,7 @@ export default function Header() {
                 <p className="text-main-color">
                   Hello, <span className="font-bold">{auth.username}</span>
                 </p>
-                <LogoutButton handleLogoutAuth={handleLogoutAuth} />
+                <LogoutButton handleLogoutAuth={handleLogout} />
               </div>
             ) : (
               <LoginButton />
@@ -98,7 +148,7 @@ export default function Header() {
             </Link>
           ))}
           {auth.isAuthenticated && (
-            <LogoutButton handleLogoutAuth={handleLogoutAuth} />
+            <LogoutButton handleLogoutAuth={handleLogout} />
           )}
         </div>
       )}

@@ -6,36 +6,40 @@ import { useLoginMutation } from "@/app/rtkQuery/services/auth";
 import ClientLayout from "@/app/Layout/ClientLayout";
 import { useToast } from "@/app/contexts/ToastProvider";
 import Button from "../atoms/Button";
+import { useAuth } from "@/app/hooks/useAuth";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [login, { isLoading, error }] = useLoginMutation();
+  const [loginMutation, { isLoading, error }] = useLoginMutation();
 
   const router = useRouter();
   const { showToast } = useToast();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await login({ username, password }).unwrap();
+      const res = await loginMutation({ username, password }).unwrap();
       const { user, token } = res;
 
-      // Save token cookie, expires in 7 days
-      const isProd = process.env.NODE_ENV === "production";
+      // Use RTK auth to handle login state
+      login(token!, user?.username ?? "", user?.role ?? "");
 
-       document.cookie = `token=${encodeURIComponent(token!)}; path=/; max-age=${7 * 24 * 60 * 60}; ${isProd ? "Secure;" : ""} SameSite=Lax`;
-    document.cookie = `username=${encodeURIComponent(user?.username ?? "")}; path=/; max-age=${7 * 24 * 60 * 60}; ${isProd ? "Secure;" : ""} SameSite=Lax`;
-    document.cookie = `role=${encodeURIComponent(user?.role ?? "")}; path=/; max-age=${7 * 24 * 60 * 60}; ${isProd ? "Secure;" : ""} SameSite=Lax`;
-
-      showToast("Login successful!", "success");
       // Clear form
       setUsername("");
       setPassword("");
-      router.push("/checkpoint");
+
+      // Show success toast
+      showToast("Login successful!", "success");
+
+      // Navigate after a small delay to allow toast to render
+      setTimeout(() => {
+        router.push("/admin");
+      }, 500); // Increased delay to ensure toast shows
     } catch (err) {
       console.error("Login failed", err);
-      showToast("Login failed. try again later", "error");
+      showToast("Login failed. Please try again later", "error");
     }
   };
 
@@ -67,7 +71,8 @@ const LoginForm = () => {
         </div>
         {error && (
           <div className="text-red-500 text-sm mb-2">
-            {error instanceof Error}
+            {/* Handle error properly based on your error structure */}
+            Login failed. Please check your credentials.
           </div>
         )}
         <Button
