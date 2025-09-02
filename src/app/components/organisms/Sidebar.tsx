@@ -33,7 +33,7 @@ const Sidebar= () => {
         {/* Sidebar navigation links */}
         <nav className="flex flex-col p-4">
          {adminLinks.map((link) => (
-            <Link key={link.id} href={link.path} className="flex items-center gap-2 py-2 px-4 hover:bg-gray-700 rounded-lg">
+            <Link key={link.id} href={`/admin/${link.path}`} className="flex items-center gap-2 py-2 px-4 hover:bg-gray-700 rounded-lg">
               {link.icon} {/* JSX element for the icon */}
               <span>{link.label}</span>
             </Link>
