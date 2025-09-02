@@ -3,10 +3,11 @@ import { navLinks } from "../utils/paths";
 import Logo from "../atoms/Logo";
 
 export default function Footer() {
+
   return (
     <footer className="bg-main-color text-white">
       <div className="container py-10 flex flex-col md:flex-row justify-between items-center gap-4">
-        <Logo/>
+        <Logo className="!text-white"/>
         <div className="flex space-x-4">
           {navLinks.map((link) => (
             <Link

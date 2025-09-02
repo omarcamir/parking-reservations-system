@@ -20,17 +20,20 @@ export default function Header() {
     username: null as string | null,
     isAuthenticated: false,
     isLoading: true,
+    role: null as string | null,
   });
 
   // Function to update auth state from cookies
   const updateAuthFromCookies = useCallback(() => {
     const token = getCookie("token");
     const username = getCookie("username");
+    const role = getCookie("role");
 
     setAuth({
       username,
       isAuthenticated: !!token,
       isLoading: false,
+      role: role!,
     });
   }, []);
 
@@ -57,6 +60,7 @@ export default function Header() {
       username: null,
       isAuthenticated: false,
       isLoading: false,
+      role:null
     });
 
     // Dispatch custom event for other components
@@ -88,6 +92,12 @@ export default function Header() {
       </nav>
     );
   }
+   /* const filteredLinks = navLinks.filter((link) => {
+    if (!auth.isAuthenticated) {
+      return link.role === undefined; // Show only public links when unauthenticated
+    }
+    return link.role === undefined || link.role === auth.role; // Show links matching the user's role
+  }); */
 
   return (
     <nav className="bg-white text-main-color shadow-md sticky top-0 z-50">
