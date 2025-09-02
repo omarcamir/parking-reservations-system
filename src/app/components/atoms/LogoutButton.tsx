@@ -18,7 +18,7 @@ const LogoutButton = ({ handleLogoutAuth }: LogoutButtonProps) => {
   return (
     <Button
       text="Logout"
-      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200"
+      className="bg-white text-red-500 border border-red-500 px-4 py-2 rounded hover:bg-red-600 hover:text-white transition duration-200"
       onClick={handleLogout}
     />
   );

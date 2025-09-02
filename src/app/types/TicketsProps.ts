@@ -24,4 +24,5 @@ export type Ticket = {
   zoneId: string;
   gateId: string;
   checkinAt: string;
+  subscriptionId?: string;
 };

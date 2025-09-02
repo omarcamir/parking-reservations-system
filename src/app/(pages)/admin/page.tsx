@@ -7,7 +7,7 @@ import { useProtectedRoute } from "@/app/hooks/useProtectedRoute";
 import ClientLayout from "@/app/Layout/ClientLayout";
 
 function AdminContent() {
-  useProtectedRoute("admin"); // ✅ runs inside StoreProvider
+  useProtectedRoute("admin");
   return <>Admin</>;
 }
 
