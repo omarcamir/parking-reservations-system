@@ -38,6 +38,7 @@ const Employees = () => {
     setForm({ name: "", role: "", email: "" });
   };
 
+
   return (
     <div className="p-6">
       <div className="flex justify-between mb-4">
@@ -45,7 +46,9 @@ const Employees = () => {
         <Button
           className="bg-main-color text-white hover:bg-main-color/90 rounded-md"
           text="+ Add Employee"
-          onClick={() => setIsModalOpen(true)}
+          // onClick={() => setIsModalOpen(true)}
+          // onClick={() => showToast("A note form Omar: API response not found", "error")}
+          onClick={()=>console.log("A note form Omar: API response not found", "error")}
         />
       </div>
 
