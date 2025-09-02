@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
-import { navLinks } from "../utils/paths";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Logo from "../atoms/Logo";
 import LoginButton from "../atoms/LoginButton";
 import LogoutButton from "../atoms/LogoutButton";
 import { usePathname } from "next/navigation";
+import TogglerBtn from "../atoms/TogglerBtn";
+import { navLinks } from "../utils/paths";
 
 const getCookie = (name: string): string | null => {
   if (typeof window === "undefined") return null;
@@ -22,6 +23,8 @@ export default function Header() {
     isLoading: true,
     role: null as string | null,
   });
+   const menuRef = useRef<HTMLDivElement | null>(null); // Reference to the entire header
+
 
   // Function to update auth state from cookies
   const updateAuthFromCookies = useCallback(() => {
@@ -66,6 +69,25 @@ export default function Header() {
     // Dispatch custom event for other components
     window.dispatchEvent(new CustomEvent("authChange"));
   };
+
+// Close the mobile menu when clicking outside of the header or menu
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node) // Check if click is outside the entire header
+    ) {
+      setIsOpen(false); // Close menu
+    }
+  };
+
+  useEffect(() => {
+    // Add event listener to close menu when clicking outside the header
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
 
   if (auth.isLoading) {
     return (
@@ -135,23 +157,24 @@ export default function Header() {
             ) : (
               <LoginButton />
             )}
-            <button
+            {/* <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-main-color focus:outline-none"
               aria-label="Toggle Menu"
             >
               ☰
-            </button>
+            </button> */}
+            <TogglerBtn toggleSidebar= {() => setIsOpen(!isOpen)} />
           </div>
         </div>
       </div>
       {isOpen && (
-        <div className="lg:hidden bg-white px-4 pb-4 space-y-2">
+        <div ref={menuRef} className="lg:hidden bg-main-color px-4 py-4 space-y-2">
           {navLinks.map((link) => (
             <Link
               key={link.id}
               href={link.path}
-              className="block text-main-color hover:text-accent-color"
+              className="block text-white hover:text-accent-color"
               onClick={() => setIsOpen(false)}
             >
               {link.label}

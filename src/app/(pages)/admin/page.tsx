@@ -1,6 +1,3 @@
-
-
-
 "use client";
 
 import { useProtectedRoute } from "@/app/hooks/useProtectedRoute";
