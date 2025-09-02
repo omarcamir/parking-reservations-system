@@ -7,6 +7,7 @@ import { Tickets } from "./services/Tickets";
 import { Login } from "./services/auth";
 import authReducer from "./slices/authSlice";
 import { subscriptions } from "./services/subscriptions";
+import { Admin } from "./services/admin";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     [Login.reducerPath]: Login.reducer,
     auth: authReducer,
     [subscriptions.reducerPath]: subscriptions.reducer,
+    [Admin.reducerPath]: Admin.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -27,6 +29,7 @@ export const store = configureStore({
       Tickets.middleware,
       Login.middleware,
       subscriptions.middleware,
+      Admin.middleware,
     ),
 });
 

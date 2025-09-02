@@ -10,10 +10,10 @@ export default function AdminLayout({
 }) {
   return (
     <ClientLayout>
-      <div className="flex h-screen">
+      <div className="flex h-screen bg-gray-50">
         <Sidebar />
         <div className={`flex-1 w-full`}>
-          <main className="p-6 bg-gray-50 flex-1">
+          <main className="p-6 flex-1">
             <AdminAuthWrapper>{children}</AdminAuthWrapper>
           </main>
         </div>
