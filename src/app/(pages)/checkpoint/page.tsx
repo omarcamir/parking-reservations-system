@@ -1,23 +1,19 @@
 "use client";
 
-import Button from "@/app/components/atoms/Button";
+
 import PageTitle from "@/app/components/atoms/PageTitle";
 import TicketCard from "@/app/components/molecules/TicketCard";
 import CheckoutResult from "@/app/components/organisms/Checkpoint/CheckoutResult";
 import LookupForm from "@/app/components/organisms/Checkpoint/LookupForm";
-import SubscriptionInfo from "@/app/components/organisms/Checkpoint/SubscriptionInfo";
 import TicketCardPlaceholder from "@/app/components/Placeholders/TicketCardPlaceholder";
+import { getErrorMessage } from "@/app/helpers/getErrorMessage";
 import { useProtectedRoute } from "@/app/hooks/useProtectedRoute";
 import ClientLayout from "@/app/Layout/ClientLayout";
 import { useGetSubscriptionQuery } from "@/app/rtkQuery/services/subscriptions";
 import { useCheckoutTicketMutation, useLazyGetTicketQuery } from "@/app/rtkQuery/services/Tickets";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { useState } from "react";
 
-type ErrorMsg = {
-  data?: {
-    message?: string;
-  };
-};
 
 function CheckpointContent() {
   useProtectedRoute("employee");
@@ -27,12 +23,7 @@ function CheckpointContent() {
 
   const [
     fetchTicket,
-    {
-      data: ticket,
-      isFetching: isFetchingTicket,
-      error: ticketError,
-      reset: resetTicket,
-    },
+    { data: ticket, isFetching: isFetchingTicket, error: ticketError, reset: resetTicket },
   ] = useLazyGetTicketQuery();
 
   const [
@@ -40,12 +31,10 @@ function CheckpointContent() {
     { data: checkoutData, isLoading: isCheckingOut, error: checkoutError, reset: resetCheckoutData },
   ] = useCheckoutTicketMutation();
 
-  const subscriptionId = ticket?.subscriptionId ?? null;
-  const {
-    data: subscription,
-    isFetching: isFetchingSubscription,
-    error: subscriptionError,
-  } = useGetSubscriptionQuery(subscriptionId!, { skip: !subscriptionId });
+  const subscriptionId = ticket?.subscriptionId || null;
+  const { data: subscription, isFetching: isFetchingSubscription } = useGetSubscriptionQuery(
+    subscriptionId ?? skipToken
+  );
 
   const handleLookup = async () => {
     const trimmed = inputTicketId.trim();
@@ -54,7 +43,7 @@ function CheckpointContent() {
     try {
       await fetchTicket(trimmed).unwrap();
     } catch (e) {
-      console.error("ticket lookup failed", e);
+      console.error("Ticket lookup failed:", e);
     }
   };
 
@@ -62,12 +51,9 @@ function CheckpointContent() {
     const id = activeTicketId ?? inputTicketId.trim();
     if (!id) return;
     try {
-      await checkout({
-        ticketId: id,
-        forceConvertToVisitor: forceConvert,
-      }).unwrap();
+      await checkout({ ticketId: id, forceConvertToVisitor: forceConvert }).unwrap();
     } catch (e) {
-      console.error("checkout failed", e);
+      console.error("Checkout failed:", e);
     }
   };
 
@@ -90,10 +76,11 @@ function CheckpointContent() {
           isFetchingTicket={isFetchingTicket}
           resetPage={resetPage}
         />
+
         {ticketError && (
           <div className="text-sm text-red-700">
             <p>Error looking up ticket:</p>
-            <p>{(ticketError as ErrorMsg)?.data?.message ?? "Unknown error."}</p>
+            <p>{getErrorMessage(ticketError) ?? "Unknown error."}</p>
           </div>
         )}
       </div>
@@ -109,41 +96,27 @@ function CheckpointContent() {
         </div>
       </div>
 
-      {subscription && (
-        <SubscriptionInfo
+      {ticket && (
+        <CheckoutResult
+          ticket={ticket}
+          checkoutData={checkoutData}
           handleCheckout={handleCheckout}
+          isCheckingOut={isCheckingOut}
           subscription={subscription}
           isFetchingSubscription={isFetchingSubscription}
-          isCheckingOut={isCheckingOut}
         />
       )}
 
-      {/* Checkout Button (only if ticket exists and is not yet checked out) */}
-      {ticket && !checkoutData && !subscriptionId && (
-        <div className="my-4">
-          <Button
-            onClick={() => handleCheckout(false)}
-            disabled={isCheckingOut}
-            className="bg-green-600 hover:bg-green-700 text-white text-lg px-6 py-3 rounded-lg shadow-md w-full transition duration-300"
-            text="Proceed to Checkout"
-            isLoading={isCheckingOut}
-          />
-        </div>
-      )}
-
-      {/* Checkout Error */}
       {checkoutError && (
-        <div className="text-sm text-red-700 mb-4">
+        <div className="text-sm text-red-700 mt-4">
           <p>Checkout failed:</p>
-          <p>{(checkoutError as ErrorMsg)?.data?.message ?? "Unknown error."}</p>
+          <p>{getErrorMessage(checkoutError) ?? "Unknown error."}</p>
         </div>
       )}
-
-      {/* Checkout Result */}
-      {checkoutData && <CheckoutResult checkoutData={checkoutData} />}
     </div>
   );
 }
+
 
 export default function Checkpoint() {
   return (

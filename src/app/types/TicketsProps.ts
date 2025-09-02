@@ -8,6 +8,7 @@ export type CheckInRequest = {
 };
 
 export type CheckInResponse = {
+  message?:string
   ticket: {
     id: string;
     type: string;

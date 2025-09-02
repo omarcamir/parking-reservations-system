@@ -17,11 +17,19 @@ const SubscriptionInfo = ({
 }: SubscriptionInfoProps) => {
   return (
     <div className="border rounded-lg p-4 mb-4 shadow bg-yellow-50">
-      <h3 className="font-semibold">🔑 Subscriber Vehicles</h3>
+      <h3 className="font-semibold text-lg mb-2">🔑 Subscriber Vehicles</h3>
+
       {isFetchingSubscription ? (
-        <p className="text-sm"><Loader size={20}/>Loading subscription...</p>
+        <p className="text-sm flex items-center gap-2">
+          <Loader size={20} />
+          Loading subscription...
+        </p>
       ) : subscription ? (
         <>
+          <p className="text-sm mb-2">
+            <strong>Subscription ID:</strong> {subscription.id}
+          </p>
+
           <ul className="list-disc pl-5">
             {subscription.cars.map((c) => (
               <li key={c.plate}>
@@ -29,12 +37,20 @@ const SubscriptionInfo = ({
               </li>
             ))}
           </ul>
-          <p className="text-sm mt-2">
+
+          <p className="text-sm mt-3 text-gray-700">
             Compare plates visually. If the plate does not match the
             subscription, use Convert-to-Visitor.
           </p>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex gap-3">
+            <Button
+              onClick={() => handleCheckout(false)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg shadow disabled:opacity-60"
+              disabled={isCheckingOut}
+              isLoading={isCheckingOut}
+              text="Confirm Checkout"
+            />
             <Button
               onClick={() => handleCheckout(true)}
               className="bg-red-600 text-white px-4 py-2 rounded-lg shadow disabled:opacity-60"

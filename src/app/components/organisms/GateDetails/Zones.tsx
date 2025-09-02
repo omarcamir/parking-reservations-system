@@ -1,7 +1,7 @@
 "use client";
 import PageTitle from "../../atoms/PageTitle";
 import Tabs from "../../molecules/Tabs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ErrorMessage from "../../atoms/ErrorMessage";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -14,7 +14,8 @@ import TicketCardPlaceholder from "../../Placeholders/TicketCardPlaceholder";
 import VisitorTab from "../../molecules/GateDetails/VisitorTab";
 import SubscriberTab from "../../molecules/GateDetails/SubscriberTab";
 import ConfirmationModal from "../../molecules/ConfirmationModal";
-import ClientLayout from "@/app/Layout/ClientLayout";
+import { useGetSubscriptionQuery } from "@/app/rtkQuery/services/subscriptions";
+import { getErrorMessage } from "@/app/helpers/getErrorMessage";
 
 type ZonesProps = {
   gateId?: string;
@@ -34,6 +35,7 @@ const Zones = ({ gateId }: ZonesProps) => {
 
   const [subscriptionId, setSubscriptionId] = useState("");
   const [subscriptionVerified, setSubscriptionVerified] = useState(false);
+
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
@@ -42,11 +44,45 @@ const Zones = ({ gateId }: ZonesProps) => {
     userType: "visitor" | "subscriber" | null;
   }>({ zoneId: null, userType: null });
 
-  const handleVerify = () => {
-    if (subscriptionId.trim()) {
-      setSubscriptionVerified(true);
+  const {
+    data: subscription,
+    isFetching: isFetchingSubscription,
+    isSuccess,
+    isError,
+  } = useGetSubscriptionQuery(subscriptionId!, { skip: !subscriptionId });
+
+  useEffect(() => {
+    if (!subscriptionId) {
+      setSubscriptionVerified(false); // reset when clearing or new attempt
+      return;
     }
-  };
+
+    if (isFetchingSubscription) {
+      setSubscriptionVerified(false); // reset while loading
+      return;
+    }
+
+    if (isSuccess && subscription?.active) {
+      setSubscriptionVerified(true);
+    } else if (isSuccess || isError) {
+      setSubscriptionVerified(false);
+    }
+  }, [
+    subscriptionId,
+    subscription,
+    isSuccess,
+    isError,
+    isFetchingSubscription,
+  ]);
+
+  
+  // Trigger refetch on successful check-in
+  useEffect(() => {
+    if (ticket) {
+      // Trigger the refetch when ticket is successfully received
+      refetchZones();
+    }
+  }, [ticket, refetchZones]); // Dependency on ticket
 
   const handleSelectZone = (
     zoneId: string,
@@ -106,7 +142,7 @@ const Zones = ({ gateId }: ZonesProps) => {
             isLoading: zonesLoading,
             isFetching: zonesFetching,
             onSelectZone: handleSelectZone,
-            handleVerify,
+            isFetchingSubscription,
           }}
         />
       ),
@@ -133,7 +169,7 @@ const Zones = ({ gateId }: ZonesProps) => {
           {checkInLoading ? (
             <TicketCardPlaceholder />
           ) : checkInError ? (
-            <ErrorMessage message="Check-in failed. Please try again." />
+            <ErrorMessage message={getErrorMessage(checkInError)} />
           ) : ticket ? (
             <TicketCard
               title="Check-in Successful"
