@@ -7,12 +7,18 @@ export interface EmployeeProps {
   updatedAt?: string;  
 }
 
-export interface ParkingReportProps {
-  zone: string;
+export type ParkingReportProps = {
+  zoneId: string;
+  name: string;
+  totalSlots: number;
   occupied: number;
-  capacity: number;
-  isOpen: boolean;
-}
+  free: number;
+  reserved: number;
+  availableForVisitors: number;
+  availableForSubscribers: number;
+  subscriberCount: number;
+  open: boolean;
+};
 
 export interface ZoneProps {
   id: string;

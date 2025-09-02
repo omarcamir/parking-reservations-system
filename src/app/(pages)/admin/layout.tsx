@@ -10,7 +10,7 @@ export default function AdminLayout({
 }) {
   return (
     <ClientLayout>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
         <div className={`flex-1 w-full`}>
           <main className="p-6 flex-1">
