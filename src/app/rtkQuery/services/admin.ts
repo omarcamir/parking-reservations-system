@@ -6,6 +6,7 @@ import {
   EmployeeProps,
   ParkingReportProps,
   RushHourProps,
+  UserPostRequestProps,
   VacationProps,
 } from "@/app/types/AdminProps";
 import { ZoneProps } from "@/app/types/ZoneProps";
@@ -42,7 +43,7 @@ export const Admin = createApi({
       query: () => `/admin/users`,
       providesTags: ["Employees"],
     }),
-    addEmployee: builder.mutation<EmployeeProps, Partial<EmployeeProps>>({
+    addEmployee: builder.mutation<EmployeeProps, Partial<UserPostRequestProps>>({
       query: (body) => ({
         url: `/admin/users`,
         method: "POST",

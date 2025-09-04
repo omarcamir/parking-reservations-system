@@ -2,10 +2,17 @@ export interface EmployeeProps {
   id: string;
   name: string;
   role: string;
-  email: string;
-  createdAt?: string; 
-  updatedAt?: string;  
+  email?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+export type UserPostRequestProps = {
+  username: string;
+  name: string;
+  role: string;
+  password: string;
+};
 
 export type ParkingReportProps = {
   zoneId: string;
