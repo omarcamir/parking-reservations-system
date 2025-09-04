@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useFormikContext } from "formik";
 
-type FormInputProps = {
+export type FormInputProps = {
   name: string;
   type: "text" | "email" | "password" | "number" | "tel";
   placeholder: string;
@@ -19,9 +19,14 @@ const FormInput: React.FC<FormInputProps> = ({
   placeholder,
   className = "",
 }) => {
-  // Type the context with MyFormValues
-  const { values, errors, touched, handleChange, handleBlur } =
-    useFormikContext<MyFormValues>();
+  // Use Formik context and handle case where context might be undefined
+  const formikContext = useFormikContext<MyFormValues>();
+  
+  if (!formikContext) {
+    throw new Error("FormInput must be used within a Formik component.");
+  }
+
+  const { values, errors, touched, handleChange, handleBlur } = formikContext;
 
   const [isFocused, setIsFocused] = useState(false);
 
@@ -50,7 +55,7 @@ const FormInput: React.FC<FormInputProps> = ({
         } ${error ? "border-red-500" : ""} ${className}`}
       />
       {error && (
-        <div className="absolute text-red-500 text-sm mt-1 left-0">{error}</div>
+        <p className="text-red-500 text-sm mt-1 left-0">{error}</p>
       )}
     </div>
   );
